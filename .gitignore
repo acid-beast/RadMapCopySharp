@@ -1,0 +1,34 @@
+## [Visual Studio / Rider / .NET]
+bin/
+obj/
+out/
+[Bb]uild/
+.vs/
+.idea/
+*.user
+*.userosscache
+*.sln.doccache
+*.suo
+*.user
+*.userosscache
+*.sln.doccache
+*.suo
+
+## [Publish]
+publish/
+
+## [User-specific / Local Config]
+radmapcopy.ini
+!radmapcopy.ini.example
+
+## [C# / .NET]
+*.pdb
+*.exe
+*.dll
+*.deps.json
+*.runtimeconfig.json
+*.log
+
+## [Backup]
+*.bak
+*.tmp

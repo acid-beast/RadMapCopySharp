@@ -1,0 +1,13 @@
+[Paths]
+SourceMapPath=
+DestinationMapPath=
+RadarColPath=
+RegionsXmlPath=
+SourceStaidxPath=
+DestinationStaidxPath=
+SourceStaticsPath=
+DestinationStaticsPath=
+
+[ProfileOverrides]
+# FullPath=Width,Height,DisplayName
+# C:\Electronic Arts\Ultima Online Classic 7.0.113\map0LegacyMUL.uop=7168,4096,Felucca
