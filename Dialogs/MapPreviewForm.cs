@@ -1,6 +1,7 @@
 using RadMapCopySharp.Core.IO;
 using RadMapCopySharp.Core.Regions;
 using RadMapCopySharp.Core.Rendering;
+using RadMapCopySharp.Core.Spawns;
 
 namespace RadMapCopySharp.Dialogs;
 
@@ -24,6 +25,8 @@ public sealed class MapPreviewForm : Form
     private readonly Button _btnFitDestination;
     private readonly CheckBox _chkShowSourceRegions;
     private readonly CheckBox _chkShowDestRegions;
+    private readonly CheckBox _chkShowSourceSpawners;
+    private readonly CheckBox _chkShowDestSpawners;
     private readonly MapPreviewPanel _sourcePanel;
     private readonly MapPreviewPanel _destinationPanel;
     private readonly ToolTip _regionToolTip;
@@ -32,6 +35,10 @@ public sealed class MapPreviewForm : Form
     private MapPreviewState _state;
     private RegionsDocument? _regionsDocument;
     private string _loadedRegionsPath = string.Empty;
+    private SpawnsDocument? _sourceSpawnsDocument;
+    private SpawnsDocument? _destinationSpawnsDocument;
+    private string _loadedSourceSpawnsPath = string.Empty;
+    private string _loadedDestinationSpawnsPath = string.Empty;
     private string _sourceBaseInfo = string.Empty;
     private string _destinationBaseInfo = string.Empty;
 
@@ -81,8 +88,10 @@ public sealed class MapPreviewForm : Form
         _destinationPanel = new MapPreviewPanel { Dock = DockStyle.Fill };
         _sourcePanel.ViewChanged += (_, _) => UpdateSourceInfo();
         _destinationPanel.ViewChanged += (_, _) => UpdateDestinationInfo();
-        _sourcePanel.RegionHoverChanged += (_, _) => OnPanelRegionHoverChanged(_sourcePanel);
-        _destinationPanel.RegionHoverChanged += (_, _) => OnPanelRegionHoverChanged(_destinationPanel);
+        _sourcePanel.RegionHoverChanged += (_, _) => UpdateHoverTooltip(_sourcePanel);
+        _destinationPanel.RegionHoverChanged += (_, _) => UpdateHoverTooltip(_destinationPanel);
+        _sourcePanel.SpawnerHoverChanged += (_, _) => UpdateHoverTooltip(_sourcePanel);
+        _destinationPanel.SpawnerHoverChanged += (_, _) => UpdateHoverTooltip(_destinationPanel);
 
         _regionToolTip = new ToolTip
         {
@@ -104,6 +113,12 @@ public sealed class MapPreviewForm : Form
 
         _chkShowDestRegions = new CheckBox { AutoSize = true, Text = "Display regions", Margin = new Padding(10, 8, 0, 0) };
         _chkShowDestRegions.CheckedChanged += (_, _) => ApplyRegionOverlays();
+
+        _chkShowSourceSpawners = new CheckBox { AutoSize = true, Text = "Display spawners", Margin = new Padding(10, 8, 0, 0) };
+        _chkShowSourceSpawners.CheckedChanged += (_, _) => ApplySpawnerOverlays();
+
+        _chkShowDestSpawners = new CheckBox { AutoSize = true, Text = "Display spawners", Margin = new Padding(10, 8, 0, 0) };
+        _chkShowDestSpawners.CheckedChanged += (_, _) => ApplySpawnerOverlays();
 
         var btnClose = new Button { Text = "Close", Width = 84, DialogResult = DialogResult.OK };
 
@@ -135,11 +150,13 @@ public sealed class MapPreviewForm : Form
         sourceHeaderHost.Controls.Add(_lblSourceHeader);
         sourceHeaderHost.Controls.Add(_btnFitSource);
         sourceHeaderHost.Controls.Add(_chkShowSourceRegions);
+        sourceHeaderHost.Controls.Add(_chkShowSourceSpawners);
 
         var destinationHeaderHost = new FlowLayoutPanel { Dock = DockStyle.Fill, WrapContents = false, FlowDirection = FlowDirection.LeftToRight, Margin = new Padding(0) };
         destinationHeaderHost.Controls.Add(_lblDestinationHeader);
         destinationHeaderHost.Controls.Add(_btnFitDestination);
         destinationHeaderHost.Controls.Add(_chkShowDestRegions);
+        destinationHeaderHost.Controls.Add(_chkShowDestSpawners);
 
         mapsLayout.Controls.Add(sourceHeaderHost, 0, 0);
         mapsLayout.Controls.Add(destinationHeaderHost, 1, 0);
@@ -188,6 +205,7 @@ public sealed class MapPreviewForm : Form
         {
             await RenderAsync(_state);
             OnRegionsPathChanged(showSuccessStatus: false);
+            LoadSpawnsFromState(_state);
         };
     }
 
@@ -214,13 +232,16 @@ public sealed class MapPreviewForm : Form
             DestinationAnchor = _state.DestinationAnchor,
             OverlayMessage = _state.OverlayMessage,
             RadarColPath = _txtRadarCol.Text,
-            RegionsXmlPath = _txtRegionsXml.Text
+            RegionsXmlPath = _txtRegionsXml.Text,
+            SourceSpawnsXmlPath = _state.SourceSpawnsXmlPath,
+            DestinationSpawnsXmlPath = _state.DestinationSpawnsXmlPath
         };
 
         _onRadarPathChanged(_state.RadarColPath);
         _onRegionsPathChanged(_state.RegionsXmlPath);
         await RenderAsync(_state);
         OnRegionsPathChanged(showSuccessStatus: false);
+        LoadSpawnsFromState(_state);
     }
 
     private async Task RenderAsync(MapPreviewState state)
@@ -247,6 +268,7 @@ public sealed class MapPreviewForm : Form
 
         try
         {
+            LoadSpawnsFromState(state);
             var sourceProgress = new Progress<int>(percent =>
             {
                 _lblStatus.Text = $"Rendering source map... {percent}%";
@@ -350,7 +372,11 @@ public sealed class MapPreviewForm : Form
             parts.Add($"Tile: {tile.X},{tile.Y}");
         }
 
-        if (panel.HoveredRegion is { } region)
+        if (panel.HoveredSpawner is { } spawner)
+        {
+            parts.Add($"Spawner: {spawner.Name}");
+        }
+        else if (panel.HoveredRegion is { } region)
         {
             parts.Add($"Region: {region.Name}");
         }
@@ -358,19 +384,22 @@ public sealed class MapPreviewForm : Form
         return string.Join(" | ", parts);
     }
 
-    private void OnPanelRegionHoverChanged(MapPreviewPanel panel)
+    private void UpdateHoverTooltip(MapPreviewPanel panel)
     {
-        var region = panel.HoveredRegion;
-        if (region == null)
+        if (panel.HoveredSpawner is { } spawner)
         {
-            _regionToolTip.SetToolTip(panel, string.Empty);
+            _regionToolTip.SetToolTip(panel, BuildSpawnerTooltip(spawner));
         }
-        else
+        else if (panel.HoveredRegion is { } region)
         {
             var bounds = region.Bounds;
             var typeSuffix = string.IsNullOrWhiteSpace(region.Type) ? string.Empty : $" ({region.Type})";
             var text = $"{region.Name}{typeSuffix}\n{bounds.X1},{bounds.Y1} - {bounds.X2},{bounds.Y2}";
             _regionToolTip.SetToolTip(panel, text);
+        }
+        else
+        {
+            _regionToolTip.SetToolTip(panel, string.Empty);
         }
 
         if (panel == _sourcePanel)
@@ -381,6 +410,17 @@ public sealed class MapPreviewForm : Form
         {
             UpdateDestinationInfo();
         }
+    }
+
+    private static string BuildSpawnerTooltip(SpawnerOverlay spawner)
+    {
+        var bounds = spawner.Bounds;
+        var creatures = spawner.Creatures.Count > 0 ? string.Join(", ", spawner.Creatures) : "(none)";
+        var delayUnit = spawner.DelayInSec ? "s" : "m";
+        return $"{spawner.Name}\n" +
+               $"Spawns: {creatures}\n" +
+               $"Max {spawner.MaxCount} | Range {spawner.Range} | Delay {spawner.MinDelay}-{spawner.MaxDelay}{delayUnit}\n" +
+               $"Centre {spawner.CentreX},{spawner.CentreY} | Box {bounds.X1},{bounds.Y1} - {bounds.X2},{bounds.Y2}";
     }
 
     protected override void Dispose(bool disposing)
@@ -482,6 +522,78 @@ public sealed class MapPreviewForm : Form
     {
         _sourcePanel.SetRegions(_regionsDocument?.GetForProfile(_state.SourceProfile), _chkShowSourceRegions.Checked);
         _destinationPanel.SetRegions(_regionsDocument?.GetForProfile(_state.DestinationProfile), _chkShowDestRegions.Checked);
+    }
+
+    private void LoadSpawnsFromState(MapPreviewState state)
+    {
+        LoadSpawnsDocument(
+            state.SourceSpawnsXmlPath,
+            ref _loadedSourceSpawnsPath,
+            ref _sourceSpawnsDocument,
+            "source");
+        LoadSpawnsDocument(
+            state.DestinationSpawnsXmlPath,
+            ref _loadedDestinationSpawnsPath,
+            ref _destinationSpawnsDocument,
+            "destination");
+        UpdateSpawnerCheckboxState();
+        ApplySpawnerOverlays();
+    }
+
+    private void LoadSpawnsDocument(
+        string path,
+        ref string loadedPath,
+        ref SpawnsDocument? document,
+        string role)
+    {
+        if (string.Equals(path, loadedPath, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        try
+        {
+            document = string.IsNullOrWhiteSpace(path) ? null : SpawnsXmlParser.Load(path);
+            loadedPath = path;
+        }
+        catch (Exception ex)
+        {
+            document = null;
+            loadedPath = string.Empty;
+            _lblStatus.Text = $"Spawner overlay disabled for {role} map: {ex.Message}";
+            _lblStatus.ForeColor = Color.DarkRed;
+        }
+    }
+
+    private void UpdateSpawnerCheckboxState()
+    {
+        var sourceCount = _sourceSpawnsDocument?.GetCountForProfile(_state.SourceProfile) ?? 0;
+        var destinationCount = _destinationSpawnsDocument?.GetCountForProfile(_state.DestinationProfile) ?? 0;
+
+        var sourceEnabled = _sourceSpawnsDocument != null && sourceCount > 0;
+        var destinationEnabled = _destinationSpawnsDocument != null && destinationCount > 0;
+
+        _chkShowSourceSpawners.Enabled = sourceEnabled;
+        _chkShowDestSpawners.Enabled = destinationEnabled;
+
+        _chkShowSourceSpawners.Text = sourceEnabled ? $"Display spawners ({sourceCount})" : "Display spawners";
+        _chkShowDestSpawners.Text = destinationEnabled ? $"Display spawners ({destinationCount})" : "Display spawners";
+
+        if (!sourceEnabled)
+        {
+            _chkShowSourceSpawners.Checked = false;
+        }
+
+        if (!destinationEnabled)
+        {
+            _chkShowDestSpawners.Checked = false;
+        }
+    }
+
+    private void ApplySpawnerOverlays()
+    {
+        _sourcePanel.SetSpawners(_sourceSpawnsDocument?.GetForProfile(_state.SourceProfile), _chkShowSourceSpawners.Checked);
+        _destinationPanel.SetSpawners(_destinationSpawnsDocument?.GetForProfile(_state.DestinationProfile), _chkShowDestSpawners.Checked);
     }
 
     private sealed record RenderResult(

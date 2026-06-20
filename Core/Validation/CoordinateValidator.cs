@@ -18,13 +18,6 @@ public static class CoordinateValidator
     {
         error = null;
 
-        // Delphi parity: reject all-zero rectangle input.
-        if (x1 == 0 && y1 == 0 && x2 == 0 && y2 == 0)
-        {
-            error = "Source rectangle cannot be all zeroes.";
-            return false;
-        }
-
         if (x1 < 0 || y1 < 0 || x2 < 0 || y2 < 0)
         {
             error = "Coordinates cannot be negative.";
@@ -90,6 +83,24 @@ public static class CoordinateValidator
         if (!AreBlockAligned(x1, y1, x2, y2))
         {
             error = "Statics copy requires source coordinates divisible by 8.";
+            return false;
+        }
+
+        error = null;
+        return true;
+    }
+
+    public static bool ValidateStaticsAlignment(int x1, int y1, int x2, int y2, int dx, int dy, out string? error)
+    {
+        if (!AreBlockAligned(x1, y1, x2, y2))
+        {
+            error = "Statics copy requires source coordinates divisible by 8.";
+            return false;
+        }
+
+        if ((dx % 8) != 0 || (dy % 8) != 0)
+        {
+            error = "Statics copy requires destination coordinates divisible by 8.";
             return false;
         }
 

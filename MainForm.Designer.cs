@@ -40,6 +40,9 @@ namespace RadMapCopySharp
             this.lblSrcStatics = new System.Windows.Forms.Label();
             this.txtSrcStatics = new System.Windows.Forms.TextBox();
             this.btnBrowseSrcStatics = new System.Windows.Forms.Button();
+            this.lblSrcSpawns = new System.Windows.Forms.Label();
+            this.txtSrcSpawns = new System.Windows.Forms.TextBox();
+            this.btnBrowseSrcSpawns = new System.Windows.Forms.Button();
             this.grpDestinationFiles = new System.Windows.Forms.GroupBox();
             this.tableDestinationFiles = new System.Windows.Forms.TableLayoutPanel();
             this.lblDstMap = new System.Windows.Forms.Label();
@@ -51,6 +54,9 @@ namespace RadMapCopySharp
             this.lblDstStatics = new System.Windows.Forms.Label();
             this.txtDstStatics = new System.Windows.Forms.TextBox();
             this.btnBrowseDstStatics = new System.Windows.Forms.Button();
+            this.lblDstSpawns = new System.Windows.Forms.Label();
+            this.txtDstSpawns = new System.Windows.Forms.TextBox();
+            this.btnBrowseDstSpawns = new System.Windows.Forms.Button();
             this.tableInfo = new System.Windows.Forms.TableLayoutPanel();
             this.grpSourceInfo = new System.Windows.Forms.GroupBox();
             this.lblSourceProfile = new System.Windows.Forms.Label();
@@ -85,6 +91,7 @@ namespace RadMapCopySharp
             this.flowOptions = new System.Windows.Forms.FlowLayoutPanel();
             this.chkCopyMap = new System.Windows.Forms.CheckBox();
             this.chkCopyStatics = new System.Windows.Forms.CheckBox();
+            this.chkCopySpawners = new System.Windows.Forms.CheckBox();
             this.lblSkipPreset = new System.Windows.Forms.Label();
             this.cmbSkipPreset = new System.Windows.Forms.ComboBox();
             this.tableCopyOptions = new System.Windows.Forms.TableLayoutPanel();
@@ -222,9 +229,9 @@ namespace RadMapCopySharp
             this.tableRoot.Location = new System.Drawing.Point(12, 12);
             this.tableRoot.Name = "tableRoot";
             this.tableRoot.RowCount = 4;
-            this.tableRoot.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 160F));
+            this.tableRoot.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 190F));
             this.tableRoot.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 56F));
-            this.tableRoot.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 188F));
+            this.tableRoot.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 214F));
             this.tableRoot.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
             this.tableRoot.Size = new System.Drawing.Size(1176, 500);
             this.tableRoot.TabIndex = 0;
@@ -242,7 +249,7 @@ namespace RadMapCopySharp
             this.tablePaths.Name = "tablePaths";
             this.tablePaths.RowCount = 1;
             this.tablePaths.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.tablePaths.Size = new System.Drawing.Size(1176, 160);
+            this.tablePaths.Size = new System.Drawing.Size(1176, 190);
             this.tablePaths.TabIndex = 0;
             //
             // grpSourceFiles
@@ -252,7 +259,7 @@ namespace RadMapCopySharp
             this.grpSourceFiles.Location = new System.Drawing.Point(3, 3);
             this.grpSourceFiles.Name = "grpSourceFiles";
             this.grpSourceFiles.Padding = new System.Windows.Forms.Padding(8);
-            this.grpSourceFiles.Size = new System.Drawing.Size(362, 154);
+            this.grpSourceFiles.Size = new System.Drawing.Size(362, 184);
             this.grpSourceFiles.TabIndex = 0;
             this.grpSourceFiles.TabStop = false;
             this.grpSourceFiles.Text = "Source Files";
@@ -272,14 +279,18 @@ namespace RadMapCopySharp
             this.tableSourceFiles.Controls.Add(this.lblSrcStatics, 0, 2);
             this.tableSourceFiles.Controls.Add(this.txtSrcStatics, 1, 2);
             this.tableSourceFiles.Controls.Add(this.btnBrowseSrcStatics, 2, 2);
+            this.tableSourceFiles.Controls.Add(this.lblSrcSpawns, 0, 3);
+            this.tableSourceFiles.Controls.Add(this.txtSrcSpawns, 1, 3);
+            this.tableSourceFiles.Controls.Add(this.btnBrowseSrcSpawns, 2, 3);
             this.tableSourceFiles.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tableSourceFiles.Location = new System.Drawing.Point(8, 24);
             this.tableSourceFiles.Name = "tableSourceFiles";
-            this.tableSourceFiles.RowCount = 3;
-            this.tableSourceFiles.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 33.33333F));
-            this.tableSourceFiles.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 33.33333F));
-            this.tableSourceFiles.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 33.33333F));
-            this.tableSourceFiles.Size = new System.Drawing.Size(346, 122);
+            this.tableSourceFiles.RowCount = 4;
+            this.tableSourceFiles.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 25F));
+            this.tableSourceFiles.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 25F));
+            this.tableSourceFiles.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 25F));
+            this.tableSourceFiles.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 25F));
+            this.tableSourceFiles.Size = new System.Drawing.Size(346, 152);
             this.tableSourceFiles.TabIndex = 0;
             //
             // lblSrcMap
@@ -367,6 +378,34 @@ namespace RadMapCopySharp
             this.btnBrowseSrcStatics.UseVisualStyleBackColor = true;
             this.btnBrowseSrcStatics.Click += new System.EventHandler(this.btnBrowseSrcStatics_Click);
             //
+            // lblSrcSpawns
+            //
+            this.lblSrcSpawns.Anchor = System.Windows.Forms.AnchorStyles.Left;
+            this.lblSrcSpawns.AutoSize = true;
+            this.lblSrcSpawns.Location = new System.Drawing.Point(3, 125);
+            this.lblSrcSpawns.Name = "lblSrcSpawns";
+            this.lblSrcSpawns.Size = new System.Drawing.Size(49, 15);
+            this.lblSrcSpawns.TabIndex = 9;
+            this.lblSrcSpawns.Text = "Spawns";
+            //
+            // txtSrcSpawns
+            //
+            this.txtSrcSpawns.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtSrcSpawns.Location = new System.Drawing.Point(59, 121);
+            this.txtSrcSpawns.Name = "txtSrcSpawns";
+            this.txtSrcSpawns.Size = new System.Drawing.Size(252, 23);
+            this.txtSrcSpawns.TabIndex = 10;
+            //
+            // btnBrowseSrcSpawns
+            //
+            this.btnBrowseSrcSpawns.Location = new System.Drawing.Point(317, 117);
+            this.btnBrowseSrcSpawns.Name = "btnBrowseSrcSpawns";
+            this.btnBrowseSrcSpawns.Size = new System.Drawing.Size(26, 35);
+            this.btnBrowseSrcSpawns.TabIndex = 11;
+            this.btnBrowseSrcSpawns.Text = "...";
+            this.btnBrowseSrcSpawns.UseVisualStyleBackColor = true;
+            this.btnBrowseSrcSpawns.Click += new System.EventHandler(this.btnBrowseSrcSpawns_Click);
+            //
             // grpDestinationFiles
             //
             this.grpDestinationFiles.Controls.Add(this.tableDestinationFiles);
@@ -374,7 +413,7 @@ namespace RadMapCopySharp
             this.grpDestinationFiles.Location = new System.Drawing.Point(371, 3);
             this.grpDestinationFiles.Name = "grpDestinationFiles";
             this.grpDestinationFiles.Padding = new System.Windows.Forms.Padding(8);
-            this.grpDestinationFiles.Size = new System.Drawing.Size(362, 154);
+            this.grpDestinationFiles.Size = new System.Drawing.Size(362, 184);
             this.grpDestinationFiles.TabIndex = 1;
             this.grpDestinationFiles.TabStop = false;
             this.grpDestinationFiles.Text = "Destination Files";
@@ -394,14 +433,18 @@ namespace RadMapCopySharp
             this.tableDestinationFiles.Controls.Add(this.lblDstStatics, 0, 2);
             this.tableDestinationFiles.Controls.Add(this.txtDstStatics, 1, 2);
             this.tableDestinationFiles.Controls.Add(this.btnBrowseDstStatics, 2, 2);
+            this.tableDestinationFiles.Controls.Add(this.lblDstSpawns, 0, 3);
+            this.tableDestinationFiles.Controls.Add(this.txtDstSpawns, 1, 3);
+            this.tableDestinationFiles.Controls.Add(this.btnBrowseDstSpawns, 2, 3);
             this.tableDestinationFiles.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tableDestinationFiles.Location = new System.Drawing.Point(8, 24);
             this.tableDestinationFiles.Name = "tableDestinationFiles";
-            this.tableDestinationFiles.RowCount = 3;
-            this.tableDestinationFiles.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 33.33333F));
-            this.tableDestinationFiles.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 33.33333F));
-            this.tableDestinationFiles.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 33.33333F));
-            this.tableDestinationFiles.Size = new System.Drawing.Size(346, 122);
+            this.tableDestinationFiles.RowCount = 4;
+            this.tableDestinationFiles.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 25F));
+            this.tableDestinationFiles.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 25F));
+            this.tableDestinationFiles.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 25F));
+            this.tableDestinationFiles.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 25F));
+            this.tableDestinationFiles.Size = new System.Drawing.Size(346, 152);
             this.tableDestinationFiles.TabIndex = 0;
             //
             // lblDstMap
@@ -489,6 +532,34 @@ namespace RadMapCopySharp
             this.btnBrowseDstStatics.UseVisualStyleBackColor = true;
             this.btnBrowseDstStatics.Click += new System.EventHandler(this.btnBrowseDstStatics_Click);
             //
+            // lblDstSpawns
+            //
+            this.lblDstSpawns.Anchor = System.Windows.Forms.AnchorStyles.Left;
+            this.lblDstSpawns.AutoSize = true;
+            this.lblDstSpawns.Location = new System.Drawing.Point(3, 125);
+            this.lblDstSpawns.Name = "lblDstSpawns";
+            this.lblDstSpawns.Size = new System.Drawing.Size(49, 15);
+            this.lblDstSpawns.TabIndex = 9;
+            this.lblDstSpawns.Text = "Spawns";
+            //
+            // txtDstSpawns
+            //
+            this.txtDstSpawns.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtDstSpawns.Location = new System.Drawing.Point(59, 121);
+            this.txtDstSpawns.Name = "txtDstSpawns";
+            this.txtDstSpawns.Size = new System.Drawing.Size(252, 23);
+            this.txtDstSpawns.TabIndex = 10;
+            //
+            // btnBrowseDstSpawns
+            //
+            this.btnBrowseDstSpawns.Location = new System.Drawing.Point(317, 117);
+            this.btnBrowseDstSpawns.Name = "btnBrowseDstSpawns";
+            this.btnBrowseDstSpawns.Size = new System.Drawing.Size(26, 35);
+            this.btnBrowseDstSpawns.TabIndex = 11;
+            this.btnBrowseDstSpawns.Text = "...";
+            this.btnBrowseDstSpawns.UseVisualStyleBackColor = true;
+            this.btnBrowseDstSpawns.Click += new System.EventHandler(this.btnBrowseDstSpawns_Click);
+            //
             // tableInfo
             //
             this.tableInfo.ColumnCount = 2;
@@ -560,8 +631,8 @@ namespace RadMapCopySharp
             this.tableCoords.Name = "tableCoords";
             this.tableCoords.RowCount = 2;
             this.tableCoords.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 88F));
-            this.tableCoords.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 100F));
-            this.tableCoords.Size = new System.Drawing.Size(1176, 188);
+            this.tableCoords.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 126F));
+            this.tableCoords.Size = new System.Drawing.Size(1176, 214);
             this.tableCoords.TabIndex = 2;
             //
             // grpSourceRect
@@ -749,7 +820,7 @@ namespace RadMapCopySharp
             this.grpCopyMode.Location = new System.Drawing.Point(3, 91);
             this.grpCopyMode.Name = "grpCopyMode";
             this.grpCopyMode.Padding = new System.Windows.Forms.Padding(8);
-            this.grpCopyMode.Size = new System.Drawing.Size(582, 94);
+            this.grpCopyMode.Size = new System.Drawing.Size(582, 120);
             this.grpCopyMode.TabIndex = 3;
             this.grpCopyMode.TabStop = false;
             this.grpCopyMode.Text = "Copy Mode";
@@ -841,6 +912,7 @@ namespace RadMapCopySharp
             //
             this.flowOptions.Controls.Add(this.chkCopyMap);
             this.flowOptions.Controls.Add(this.chkCopyStatics);
+            this.flowOptions.Controls.Add(this.chkCopySpawners);
             this.flowOptions.Controls.Add(this.lblSkipPreset);
             this.flowOptions.Controls.Add(this.cmbSkipPreset);
             this.flowOptions.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -873,24 +945,34 @@ namespace RadMapCopySharp
             this.chkCopyStatics.Text = "Copy statics";
             this.chkCopyStatics.UseVisualStyleBackColor = true;
             //
+            // chkCopySpawners
+            //
+            this.chkCopySpawners.AutoSize = true;
+            this.chkCopySpawners.Location = new System.Drawing.Point(178, 3);
+            this.chkCopySpawners.Name = "chkCopySpawners";
+            this.chkCopySpawners.Size = new System.Drawing.Size(103, 19);
+            this.chkCopySpawners.TabIndex = 2;
+            this.chkCopySpawners.Text = "Copy spawners";
+            this.chkCopySpawners.UseVisualStyleBackColor = true;
+            //
             // lblSkipPreset
             //
             this.lblSkipPreset.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.lblSkipPreset.AutoSize = true;
-            this.lblSkipPreset.Location = new System.Drawing.Point(178, 5);
+            this.lblSkipPreset.Location = new System.Drawing.Point(287, 5);
             this.lblSkipPreset.Name = "lblSkipPreset";
             this.lblSkipPreset.Size = new System.Drawing.Size(53, 15);
-            this.lblSkipPreset.TabIndex = 2;
+            this.lblSkipPreset.TabIndex = 3;
             this.lblSkipPreset.Text = "Skip IDs:";
             //
             // cmbSkipPreset
             //
             this.cmbSkipPreset.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbSkipPreset.FormattingEnabled = true;
-            this.cmbSkipPreset.Location = new System.Drawing.Point(237, 3);
+            this.cmbSkipPreset.Location = new System.Drawing.Point(346, 3);
             this.cmbSkipPreset.Name = "cmbSkipPreset";
-            this.cmbSkipPreset.Size = new System.Drawing.Size(220, 23);
-            this.cmbSkipPreset.TabIndex = 3;
+            this.cmbSkipPreset.Size = new System.Drawing.Size(74, 23);
+            this.cmbSkipPreset.TabIndex = 4;
             //
             // tableCopyOptions
             //
@@ -904,7 +986,7 @@ namespace RadMapCopySharp
             this.tableCopyOptions.RowCount = 2;
             this.tableCopyOptions.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
             this.tableCopyOptions.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.tableCopyOptions.Size = new System.Drawing.Size(566, 62);
+            this.tableCopyOptions.Size = new System.Drawing.Size(566, 88);
             this.tableCopyOptions.TabIndex = 0;
             //
             // grpActions
@@ -914,7 +996,7 @@ namespace RadMapCopySharp
             this.grpActions.Location = new System.Drawing.Point(591, 91);
             this.grpActions.Name = "grpActions";
             this.grpActions.Padding = new System.Windows.Forms.Padding(8);
-            this.grpActions.Size = new System.Drawing.Size(582, 94);
+            this.grpActions.Size = new System.Drawing.Size(582, 120);
             this.grpActions.TabIndex = 4;
             this.grpActions.TabStop = false;
             this.grpActions.Text = "Actions";
@@ -934,7 +1016,7 @@ namespace RadMapCopySharp
             this.tableActions.RowCount = 2;
             this.tableActions.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
             this.tableActions.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.tableActions.Size = new System.Drawing.Size(566, 62);
+            this.tableActions.Size = new System.Drawing.Size(566, 88);
             this.tableActions.TabIndex = 0;
             //
             // btnPreview
@@ -994,15 +1076,15 @@ namespace RadMapCopySharp
             this.AcceptButton = this.btnCopy;
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1200, 550);
+            this.ClientSize = new System.Drawing.Size(1200, 600);
             this.Controls.Add(this.panelMain);
             this.Controls.Add(this.panelFooter);
             this.Controls.Add(this.menuStripMain);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.MainMenuStrip = this.menuStripMain;
-            this.MaximumSize = new System.Drawing.Size(1200, 550);
+            this.MaximumSize = new System.Drawing.Size(1200, 600);
             this.MaximizeBox = false;
-            this.MinimumSize = new System.Drawing.Size(1200, 550);
+            this.MinimumSize = new System.Drawing.Size(1200, 600);
             this.Name = "MainForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "RadMapCopySharp";
@@ -1068,6 +1150,9 @@ namespace RadMapCopySharp
         private System.Windows.Forms.Label lblSrcStatics;
         private System.Windows.Forms.TextBox txtSrcStatics;
         private System.Windows.Forms.Button btnBrowseSrcStatics;
+        private System.Windows.Forms.Label lblSrcSpawns;
+        private System.Windows.Forms.TextBox txtSrcSpawns;
+        private System.Windows.Forms.Button btnBrowseSrcSpawns;
         private System.Windows.Forms.GroupBox grpDestinationFiles;
         private System.Windows.Forms.TableLayoutPanel tableDestinationFiles;
         private System.Windows.Forms.Label lblDstMap;
@@ -1079,6 +1164,9 @@ namespace RadMapCopySharp
         private System.Windows.Forms.Label lblDstStatics;
         private System.Windows.Forms.TextBox txtDstStatics;
         private System.Windows.Forms.Button btnBrowseDstStatics;
+        private System.Windows.Forms.Label lblDstSpawns;
+        private System.Windows.Forms.TextBox txtDstSpawns;
+        private System.Windows.Forms.Button btnBrowseDstSpawns;
         private System.Windows.Forms.TableLayoutPanel tableInfo;
         private System.Windows.Forms.GroupBox grpSourceInfo;
         private System.Windows.Forms.Label lblSourceProfile;
@@ -1113,6 +1201,7 @@ namespace RadMapCopySharp
         private System.Windows.Forms.FlowLayoutPanel flowOptions;
         private System.Windows.Forms.CheckBox chkCopyMap;
         private System.Windows.Forms.CheckBox chkCopyStatics;
+        private System.Windows.Forms.CheckBox chkCopySpawners;
         private System.Windows.Forms.Label lblSkipPreset;
         private System.Windows.Forms.ComboBox cmbSkipPreset;
         private System.Windows.Forms.TableLayoutPanel tableCopyOptions;

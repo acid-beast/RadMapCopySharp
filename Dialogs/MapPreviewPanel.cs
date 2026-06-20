@@ -1,6 +1,7 @@
 using System.Drawing.Drawing2D;
 using RadMapCopySharp.Core.Regions;
 using RadMapCopySharp.Core.Rendering;
+using RadMapCopySharp.Core.Spawns;
 
 namespace RadMapCopySharp.Dialogs;
 
@@ -13,6 +14,8 @@ public sealed class MapPreviewPanel : Panel
     private readonly MapViewTransform _transform = new();
     private IReadOnlyList<MapRegionOverlay>? _regions;
     private bool _showRegions;
+    private IReadOnlyList<SpawnerOverlay>? _spawners;
+    private bool _showSpawners;
     private CopyRectangle? _overlay;
     private Point? _crosshair;
     private Color _borderColor = Color.LimeGreen;
@@ -20,13 +23,17 @@ public sealed class MapPreviewPanel : Panel
     private Point _lastMouse;
     private bool _userAdjustedView;
     private MapRegionOverlay? _hoveredRegion;
+    private SpawnerOverlay? _hoveredSpawner;
 
     public event EventHandler? ViewChanged;
     public event EventHandler? RegionHoverChanged;
+    public event EventHandler? SpawnerHoverChanged;
 
     public float Zoom => _transform.Zoom;
 
     public MapRegionOverlay? HoveredRegion => _hoveredRegion;
+
+    public SpawnerOverlay? HoveredSpawner => _hoveredSpawner;
 
     public MapPreviewPanel()
     {
@@ -65,6 +72,13 @@ public sealed class MapPreviewPanel : Panel
     {
         _regions = regions;
         _showRegions = visible;
+        Invalidate();
+    }
+
+    public void SetSpawners(IReadOnlyList<SpawnerOverlay>? spawners, bool visible)
+    {
+        _spawners = spawners;
+        _showSpawners = visible;
         Invalidate();
     }
 
@@ -115,6 +129,33 @@ public sealed class MapPreviewPanel : Panel
         return false;
     }
 
+    public bool TryHitSpawner(Point screen, out SpawnerOverlay? spawner)
+    {
+        spawner = null;
+        if (!_showSpawners || _spawners == null || _spawners.Count == 0)
+        {
+            return false;
+        }
+
+        if (!TryScreenToMap(screen, out var tile))
+        {
+            return false;
+        }
+
+        for (var i = _spawners.Count - 1; i >= 0; i--)
+        {
+            var candidate = _spawners[i];
+            var bounds = candidate.Bounds;
+            if (tile.X >= bounds.X1 && tile.X <= bounds.X2 && tile.Y >= bounds.Y1 && tile.Y <= bounds.Y2)
+            {
+                spawner = candidate;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     protected override void Dispose(bool disposing)
     {
         if (disposing)
@@ -153,6 +194,32 @@ public sealed class MapPreviewPanel : Panel
                 var regionRect = new RectangleF(bounds.X1, bounds.Y1, bounds.Width, bounds.Height);
                 e.Graphics.FillRectangle(fill, regionRect);
                 e.Graphics.DrawRectangle(pen, regionRect.X, regionRect.Y, regionRect.Width, regionRect.Height);
+            }
+        }
+
+        if (_showSpawners && _spawners != null)
+        {
+            var strokeWidth = Math.Max(1f / _transform.Zoom, 0.5f);
+            using var fill = new SolidBrush(Color.FromArgb(40, 255, 140, 0));
+            using var pen = new Pen(Color.FromArgb(190, 255, 140, 0), strokeWidth);
+            using var rangePen = new Pen(Color.FromArgb(150, 255, 99, 71), strokeWidth);
+            using var centreBrush = new SolidBrush(Color.FromArgb(220, 255, 99, 71));
+            var dotRadius = Math.Max(1.5f / _transform.Zoom, 0.75f);
+            foreach (var spawner in _spawners)
+            {
+                var bounds = spawner.Bounds;
+                var spawnerRect = new RectangleF(bounds.X1, bounds.Y1, bounds.Width, bounds.Height);
+                e.Graphics.FillRectangle(fill, spawnerRect);
+                e.Graphics.DrawRectangle(pen, spawnerRect.X, spawnerRect.Y, spawnerRect.Width, spawnerRect.Height);
+
+                var centreX = spawner.CentreX + 0.5f;
+                var centreY = spawner.CentreY + 0.5f;
+                if (spawner.Range > 0)
+                {
+                    e.Graphics.DrawEllipse(rangePen, centreX - spawner.Range, centreY - spawner.Range, spawner.Range * 2f, spawner.Range * 2f);
+                }
+
+                e.Graphics.FillEllipse(centreBrush, centreX - dotRadius, centreY - dotRadius, dotRadius * 2f, dotRadius * 2f);
             }
         }
 
@@ -206,6 +273,7 @@ public sealed class MapPreviewPanel : Panel
         _lastMouse = e.Location;
         Cursor = Cursors.Hand;
         ClearHoveredRegion();
+        ClearHoveredSpawner();
     }
 
     protected override void OnMouseMove(MouseEventArgs e)
@@ -222,10 +290,12 @@ public sealed class MapPreviewPanel : Panel
             _userAdjustedView = true;
             Invalidate();
             ClearHoveredRegion();
+            ClearHoveredSpawner();
         }
         else
         {
             UpdateHoveredRegion(e.Location);
+            UpdateHoveredSpawner(e.Location);
         }
 
         RaiseViewChanged();
@@ -248,6 +318,7 @@ public sealed class MapPreviewPanel : Panel
     {
         base.OnMouseLeave(e);
         ClearHoveredRegion();
+        ClearHoveredSpawner();
         RaiseViewChanged();
     }
 
@@ -293,5 +364,33 @@ public sealed class MapPreviewPanel : Panel
 
         _hoveredRegion = null;
         RegionHoverChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    private void UpdateHoveredSpawner(Point screen)
+    {
+        var previous = _hoveredSpawner;
+        if (!TryHitSpawner(screen, out var spawner))
+        {
+            spawner = null;
+        }
+
+        if (ReferenceEquals(previous, spawner))
+        {
+            return;
+        }
+
+        _hoveredSpawner = spawner;
+        SpawnerHoverChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    private void ClearHoveredSpawner()
+    {
+        if (_hoveredSpawner == null)
+        {
+            return;
+        }
+
+        _hoveredSpawner = null;
+        SpawnerHoverChanged?.Invoke(this, EventArgs.Empty);
     }
 }

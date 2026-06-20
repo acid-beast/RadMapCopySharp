@@ -26,6 +26,8 @@ public sealed class SettingsStore
             DestinationMapPath = Get(dict, "Paths", "DestinationMapPath"),
             RadarColPath = Get(dict, "Paths", "RadarColPath"),
             RegionsXmlPath = Get(dict, "Paths", "RegionsXmlPath"),
+            SourceSpawnsXmlPath = Get(dict, "Paths", "SourceSpawnsXmlPath"),
+            DestinationSpawnsXmlPath = Get(dict, "Paths", "DestinationSpawnsXmlPath"),
             SourceStaidxPath = Get(dict, "Paths", "SourceStaidxPath"),
             DestinationStaidxPath = Get(dict, "Paths", "DestinationStaidxPath"),
             SourceStaticsPath = Get(dict, "Paths", "SourceStaticsPath"),
@@ -43,6 +45,8 @@ public sealed class SettingsStore
         sb.AppendLine($"DestinationMapPath={settings.DestinationMapPath}");
         sb.AppendLine($"RadarColPath={settings.RadarColPath}");
         sb.AppendLine($"RegionsXmlPath={settings.RegionsXmlPath}");
+        sb.AppendLine($"SourceSpawnsXmlPath={settings.SourceSpawnsXmlPath}");
+        sb.AppendLine($"DestinationSpawnsXmlPath={settings.DestinationSpawnsXmlPath}");
         sb.AppendLine($"SourceStaidxPath={settings.SourceStaidxPath}");
         sb.AppendLine($"DestinationStaidxPath={settings.DestinationStaidxPath}");
         sb.AppendLine($"SourceStaticsPath={settings.SourceStaticsPath}");
@@ -235,6 +239,8 @@ public sealed class AppSettings
     public string DestinationMapPath { get; set; } = string.Empty;
     public string RadarColPath { get; set; } = string.Empty;
     public string RegionsXmlPath { get; set; } = string.Empty;
+    public string SourceSpawnsXmlPath { get; set; } = string.Empty;
+    public string DestinationSpawnsXmlPath { get; set; } = string.Empty;
     public string SourceStaidxPath { get; set; } = string.Empty;
     public string DestinationStaidxPath { get; set; } = string.Empty;
     public string SourceStaticsPath { get; set; } = string.Empty;

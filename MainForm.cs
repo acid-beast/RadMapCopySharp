@@ -13,6 +13,7 @@ public partial class MainForm : Form
     private readonly SettingsStore _settingsStore;
     private readonly MapCopyOperation _mapCopyOperation;
     private readonly StaticsCopyOperation _staticsCopyOperation;
+    private readonly SpawnsCopyOperation _spawnsCopyOperation;
     private readonly CreateEmptyMapOperation _createEmptyMapOperation;
     private readonly ExtendToMLOperation _extendToMLOperation;
     private readonly string _definitionsPath;
@@ -32,6 +33,7 @@ public partial class MainForm : Form
 
         _mapCopyOperation = new MapCopyOperation();
         _staticsCopyOperation = new StaticsCopyOperation();
+        _spawnsCopyOperation = new SpawnsCopyOperation();
         _createEmptyMapOperation = new CreateEmptyMapOperation();
         _extendToMLOperation = new ExtendToMLOperation();
         _settingsStore = new SettingsStore(Path.Combine(AppContext.BaseDirectory, "radmapcopy.ini"));
@@ -92,6 +94,12 @@ public partial class MainForm : Form
             ValidateAllInputs();
         };
 
+        chkCopySpawners.CheckedChanged += (_, _) =>
+        {
+            UpdateCopyModeVisibility();
+            ValidateAllInputs();
+        };
+
         var presets = SettingsStore.LoadSkipTilePresets(_definitionsPath).ToList();
         if (presets.Count == 0)
         {
@@ -115,6 +123,8 @@ public partial class MainForm : Form
         txtSrcStatics.Text = settings.SourceStaticsPath;
         txtDstStaidx.Text = settings.DestinationStaidxPath;
         txtDstStatics.Text = settings.DestinationStaticsPath;
+        txtSrcSpawns.Text = settings.SourceSpawnsXmlPath;
+        txtDstSpawns.Text = settings.DestinationSpawnsXmlPath;
         _radarColPath = ResolveRadarColPath(settings.RadarColPath, settings.SourceMapPath, settings.DestinationMapPath);
         _regionsXmlPath = ResolveRegionsXmlPath(settings.RegionsXmlPath, settings.SourceMapPath, settings.DestinationMapPath, _radarColPath);
     }
@@ -132,6 +142,16 @@ public partial class MainForm : Form
         txtSrcStatics.TextChanged += (_, _) => ValidateAllInputs();
         txtDstStaidx.TextChanged += (_, _) => ValidateAllInputs();
         txtDstStatics.TextChanged += (_, _) => ValidateAllInputs();
+        txtSrcSpawns.TextChanged += (_, _) =>
+        {
+            ValidateAllInputs();
+            UpdateCopySpawnersState();
+        };
+        txtDstSpawns.TextChanged += (_, _) =>
+        {
+            ValidateAllInputs();
+            UpdateCopySpawnersState();
+        };
 
         numZ1.ValueChanged += (_, _) => ValidateAllInputs();
         numZ2.ValueChanged += (_, _) => ValidateAllInputs();
@@ -145,6 +165,8 @@ public partial class MainForm : Form
             DestinationMapPath = txtDstMap.Text,
             RadarColPath = _radarColPath,
             RegionsXmlPath = _regionsXmlPath,
+            SourceSpawnsXmlPath = txtSrcSpawns.Text,
+            DestinationSpawnsXmlPath = txtDstSpawns.Text,
             SourceStaidxPath = txtSrcStaidx.Text,
             SourceStaticsPath = txtSrcStatics.Text,
             DestinationStaidxPath = txtDstStaidx.Text,
@@ -174,6 +196,7 @@ public partial class MainForm : Form
         }
 
         UpdatePreviewButtonState();
+        UpdateCopySpawnersState();
         UpdateCopyButtonState();
     }
 
@@ -214,9 +237,9 @@ public partial class MainForm : Form
     {
         reason = string.Empty;
 
-        if (!chkCopyMap.Checked && !chkCopyStatics.Checked)
+        if (!chkCopyMap.Checked && !chkCopyStatics.Checked && !chkCopySpawners.Checked)
         {
-            reason = "Select at least one copy target: map and/or statics.";
+            reason = "Select at least one copy target: map, statics, or spawners.";
             return false;
         }
 
@@ -323,6 +346,7 @@ public partial class MainForm : Form
                 parsed[txtSY1],
                 parsed[txtSX2],
                 parsed[txtSY2]);
+            var destinationAligned = (parsed[txtDX] % 8) == 0 && (parsed[txtDY] % 8) == 0;
 
             if (!sourceAligned)
             {
@@ -336,7 +360,20 @@ public partial class MainForm : Form
                 }
             }
 
-            return sourceAligned;
+            if (!destinationAligned)
+            {
+                if ((parsed[txtDX] % 8) != 0)
+                {
+                    txtDX.ForeColor = Color.DarkRed;
+                }
+
+                if ((parsed[txtDY] % 8) != 0)
+                {
+                    txtDY.ForeColor = Color.DarkRed;
+                }
+            }
+
+            return sourceAligned && destinationAligned;
         }
 
         return parsed.Count == boxes.Length;
@@ -435,9 +472,24 @@ public partial class MainForm : Form
                 return false;
             }
 
-            if (!CoordinateValidator.ValidateBlockAligned(sx1, sy1, sx2, sy2, out var alignedError))
+            if (!CoordinateValidator.ValidateStaticsAlignment(sx1, sy1, sx2, sy2, dx, dy, out var alignedError))
             {
-                error = alignedError ?? "Statics copy coordinates must be block aligned.";
+                error = alignedError ?? "Statics copy coordinates must be divisible by 8.";
+                return false;
+            }
+        }
+
+        if (chkCopySpawners.Checked)
+        {
+            if (string.IsNullOrWhiteSpace(txtSrcSpawns.Text) || !File.Exists(txtSrcSpawns.Text))
+            {
+                error = "Source spawner xml is required and must exist for spawner copy.";
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(txtDstSpawns.Text))
+            {
+                error = "Destination spawner xml path is required for spawner copy.";
                 return false;
             }
         }
@@ -485,9 +537,9 @@ public partial class MainForm : Form
                 return;
             }
 
-            if (!chkCopyMap.Checked && !chkCopyStatics.Checked)
+            if (!chkCopyMap.Checked && !chkCopyStatics.Checked && !chkCopySpawners.Checked)
             {
-                MessageBox.Show("Select at least one copy target: map and/or statics.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Select at least one copy target: map, statics, or spawners.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -545,7 +597,37 @@ public partial class MainForm : Form
                 await Task.Run(() => _staticsCopyOperation.Execute(staticsRequest, OnProgress));
             }
 
-            MessageBox.Show("Copy completed!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            SpawnsCopyResult? spawnsResult = null;
+            if (chkCopySpawners.Checked)
+            {
+                if (!File.Exists(txtSrcSpawns.Text))
+                {
+                    throw new InvalidOperationException("Source spawner xml is required for spawner copy.");
+                }
+
+                var spawnsRequest = new SpawnsCopyRequest
+                {
+                    SourceSpawnsPath = txtSrcSpawns.Text,
+                    DestinationSpawnsPath = txtDstSpawns.Text,
+                    DestinationProfile = _destinationProfile!,
+                    SourceX1 = request.SourceX1,
+                    SourceY1 = request.SourceY1,
+                    SourceX2 = request.SourceX2,
+                    SourceY2 = request.SourceY2,
+                    DestinationX = request.DestinationX,
+                    DestinationY = request.DestinationY
+                };
+
+                spawnsResult = await Task.Run(() => _spawnsCopyOperation.Execute(spawnsRequest, OnProgress));
+            }
+
+            var successMessage = "Copy completed!";
+            if (spawnsResult != null)
+            {
+                successMessage += $"\nSpawners copied: {spawnsResult.CopiedCount}";
+            }
+
+            MessageBox.Show(successMessage, "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
         catch (Exception ex)
         {
@@ -583,18 +665,22 @@ public partial class MainForm : Form
         {
             rbRandomZ.Checked = true;
         }
+
+        UpdateCopySpawnersState();
     }
 
     private void txtSrcMap_TextChanged(object sender, EventArgs e)
     {
         ValidateAllInputs();
         AutofillCompanionPaths(txtSrcMap.Text, txtSrcStaidx, txtSrcStatics);
+        AutofillSpawnsPath(txtSrcMap.Text, txtSrcSpawns);
     }
 
     private void txtDstMap_TextChanged(object sender, EventArgs e)
     {
         ValidateAllInputs();
         AutofillCompanionPaths(txtDstMap.Text, txtDstStaidx, txtDstStatics);
+        AutofillSpawnsPath(txtDstMap.Text, txtDstSpawns);
     }
 
     private static void AutofillCompanionPaths(string mapPath, TextBox staidxTarget, TextBox staticsTarget)
@@ -668,6 +754,16 @@ public partial class MainForm : Form
         BrowseMulPath(txtDstStatics, mustExist: false);
     }
 
+    private void btnBrowseSrcSpawns_Click(object sender, EventArgs e)
+    {
+        BrowseXmlPath(txtSrcSpawns, mustExist: true);
+    }
+
+    private void btnBrowseDstSpawns_Click(object sender, EventArgs e)
+    {
+        BrowseXmlPath(txtDstSpawns, mustExist: false);
+    }
+
     private void BrowseMulPath(TextBox target, bool mustExist)
     {
         if (mustExist)
@@ -681,6 +777,26 @@ public partial class MainForm : Form
         else
         {
             saveFileDialog.Filter = "MUL files (*.mul)|*.mul|All files (*.*)|*.*";
+            if (saveFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                target.Text = saveFileDialog.FileName;
+            }
+        }
+    }
+
+    private void BrowseXmlPath(TextBox target, bool mustExist)
+    {
+        if (mustExist)
+        {
+            openFileDialog.Filter = "XML files (*.xml)|*.xml|All files (*.*)|*.*";
+            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                target.Text = openFileDialog.FileName;
+            }
+        }
+        else
+        {
+            saveFileDialog.Filter = "XML files (*.xml)|*.xml|All files (*.*)|*.*";
             if (saveFileDialog.ShowDialog() == DialogResult.OK)
             {
                 target.Text = saveFileDialog.FileName;
@@ -874,6 +990,8 @@ public partial class MainForm : Form
             DestinationProfile = _destinationProfile,
             RadarColPath = ResolveRadarColPath(_radarColPath, txtSrcMap.Text, txtDstMap.Text),
             RegionsXmlPath = ResolveRegionsXmlPath(_regionsXmlPath, txtSrcMap.Text, txtDstMap.Text, _radarColPath),
+            SourceSpawnsXmlPath = txtSrcSpawns.Text,
+            DestinationSpawnsXmlPath = txtDstSpawns.Text,
             SourceRect = new CopyRectangle(sx1, sy1, sx2, sy2),
             DestinationAnchor = new Point(dx, dy)
         };
@@ -896,6 +1014,8 @@ public partial class MainForm : Form
             DestinationProfile = _destinationProfile!,
             RadarColPath = ResolveRadarColPath(_radarColPath, sourcePath, destinationPath),
             RegionsXmlPath = ResolveRegionsXmlPath(_regionsXmlPath, sourcePath, destinationPath, _radarColPath),
+            SourceSpawnsXmlPath = txtSrcSpawns.Text,
+            DestinationSpawnsXmlPath = txtDstSpawns.Text,
             OverlayMessage = message
         };
     }
@@ -994,6 +1114,56 @@ public partial class MainForm : Form
         }
 
         var lower = Path.Combine(directory, "regions.xml");
+        return File.Exists(lower) ? lower : null;
+    }
+
+    private static void AutofillSpawnsPath(string mapPath, TextBox spawnsTarget)
+    {
+        if (!string.IsNullOrWhiteSpace(spawnsTarget.Text))
+        {
+            return;
+        }
+
+        var candidate = BuildSpawnsCandidate(mapPath);
+        if (candidate != null)
+        {
+            spawnsTarget.Text = candidate;
+        }
+    }
+
+    private void UpdateCopySpawnersState()
+    {
+        var enabled = !string.IsNullOrWhiteSpace(txtSrcSpawns.Text)
+                      && File.Exists(txtSrcSpawns.Text)
+                      && !string.IsNullOrWhiteSpace(txtDstSpawns.Text);
+
+        chkCopySpawners.Enabled = enabled;
+        if (!enabled)
+        {
+            chkCopySpawners.Checked = false;
+        }
+    }
+
+    private static string? BuildSpawnsCandidate(string mapPath)
+    {
+        if (string.IsNullOrWhiteSpace(mapPath))
+        {
+            return null;
+        }
+
+        var directory = Path.GetDirectoryName(mapPath);
+        if (string.IsNullOrWhiteSpace(directory))
+        {
+            return null;
+        }
+
+        var canonical = Path.Combine(directory, "Spawns.xml");
+        if (File.Exists(canonical))
+        {
+            return canonical;
+        }
+
+        var lower = Path.Combine(directory, "spawns.xml");
         return File.Exists(lower) ? lower : null;
     }
 
