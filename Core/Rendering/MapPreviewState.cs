@@ -39,4 +39,7 @@ public sealed record CopyRectangle(int X1, int Y1, int X2, int Y2)
 {
     public int Width => X2 - X1 + 1;
     public int Height => Y2 - Y1 + 1;
+
+    public bool ContainsPoint(int x, int y) =>
+        x >= X1 && x <= X2 && y >= Y1 && y <= Y2;
 }

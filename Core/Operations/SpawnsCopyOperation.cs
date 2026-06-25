@@ -16,6 +16,9 @@ public sealed class SpawnsCopyRequest
     public required int SourceY2 { get; init; }
     public required int DestinationX { get; init; }
     public required int DestinationY { get; init; }
+    public required AltitudeMode AltitudeMode { get; init; }
+    public required int Z1 { get; init; }
+    public required int Z2 { get; init; }
 }
 
 public sealed class SpawnsCopyResult
@@ -58,6 +61,7 @@ public sealed class SpawnsCopyOperation
 
         var offsetX = request.DestinationX - request.SourceX1;
         var offsetY = request.DestinationY - request.SourceY1;
+        var random = new Random();
         var sourcePoints = sourceDocument.Root.Elements("Points").ToList();
         var total = Math.Max(sourcePoints.Count, 1);
         var copied = 0;
@@ -67,7 +71,9 @@ public sealed class SpawnsCopyOperation
             var points = sourcePoints[i];
             var x = ParseInt(points.Element("X")?.Value);
             var y = ParseInt(points.Element("Y")?.Value);
-            if (!Contains(request, x, y))
+            var centreX = ParseInt(points.Element("CentreX")?.Value);
+            var centreY = ParseInt(points.Element("CentreY")?.Value);
+            if (!CentreInSourceRect(request, centreX, centreY))
             {
                 ReportProgress(progress, i + 1, total, copied, "Scanning spawners");
                 continue;
@@ -78,6 +84,20 @@ public sealed class SpawnsCopyOperation
             SetInt(clone, "Y", y + offsetY);
             SetInt(clone, "CentreX", ParseInt(clone.Element("CentreX")?.Value) + offsetX);
             SetInt(clone, "CentreY", ParseInt(clone.Element("CentreY")?.Value) + offsetY);
+
+            var centreZElement = clone.Element("CentreZ");
+            if (centreZElement != null)
+            {
+                var centreZ = ParseInt(centreZElement.Value);
+                var adjustedZ = AltitudeAdjustment.Apply(
+                    request.AltitudeMode,
+                    request.Z1,
+                    request.Z2,
+                    (sbyte)Math.Clamp(centreZ, sbyte.MinValue, sbyte.MaxValue),
+                    random);
+                SetInt(clone, "CentreZ", adjustedZ);
+            }
+
             SetValue(clone, "Map", destinationFacet);
             SetValue(clone, "UniqueId", Guid.NewGuid().ToString());
 
@@ -152,12 +172,12 @@ public sealed class SpawnsCopyOperation
         document.Save(destinationPath);
     }
 
-    private static bool Contains(SpawnsCopyRequest request, int x, int y)
+    private static bool CentreInSourceRect(SpawnsCopyRequest request, int centreX, int centreY)
     {
-        return x >= request.SourceX1
-               && x <= request.SourceX2
-               && y >= request.SourceY1
-               && y <= request.SourceY2;
+        return centreX >= request.SourceX1
+               && centreX <= request.SourceX2
+               && centreY >= request.SourceY1
+               && centreY <= request.SourceY2;
     }
 
     private static void ReportProgress(Action<int, string>? progress, int current, int total, int copied, string phase)

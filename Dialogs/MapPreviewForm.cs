@@ -27,6 +27,8 @@ public sealed class MapPreviewForm : Form
     private readonly CheckBox _chkShowDestRegions;
     private readonly CheckBox _chkShowSourceSpawners;
     private readonly CheckBox _chkShowDestSpawners;
+    private readonly CheckBox _chkShowSourceAllSpawners;
+    private readonly CheckBox _chkShowDestAllSpawners;
     private readonly MapPreviewPanel _sourcePanel;
     private readonly MapPreviewPanel _destinationPanel;
     private readonly ToolTip _regionToolTip;
@@ -54,9 +56,9 @@ public sealed class MapPreviewForm : Form
         _onRegionsPathChanged = onRegionsPathChanged;
 
         Text = "Map Preview";
-        Width = 1220;
-        Height = 790;
-        MinimumSize = new Size(980, 640);
+        Width = (int)(1220 * 1.1);
+        Height = (int)(790 * 1.1);
+        MinimumSize = new Size((int)(980 * 1.1), (int)(640 * 1.1));
         StartPosition = FormStartPosition.CenterParent;
 
         _lblSourceHeader = new Label { AutoSize = true, TextAlign = ContentAlignment.MiddleLeft, Margin = new Padding(0, 6, 6, 0) };
@@ -114,11 +116,17 @@ public sealed class MapPreviewForm : Form
         _chkShowDestRegions = new CheckBox { AutoSize = true, Text = "Display regions", Margin = new Padding(10, 8, 0, 0) };
         _chkShowDestRegions.CheckedChanged += (_, _) => ApplyRegionOverlays();
 
-        _chkShowSourceSpawners = new CheckBox { AutoSize = true, Text = "Display spawners", Margin = new Padding(10, 8, 0, 0) };
+        _chkShowSourceSpawners = new CheckBox { AutoSize = true, Text = "In copy area", Margin = new Padding(10, 8, 0, 0) };
         _chkShowSourceSpawners.CheckedChanged += (_, _) => ApplySpawnerOverlays();
 
-        _chkShowDestSpawners = new CheckBox { AutoSize = true, Text = "Display spawners", Margin = new Padding(10, 8, 0, 0) };
+        _chkShowDestSpawners = new CheckBox { AutoSize = true, Text = "In copy area", Margin = new Padding(10, 8, 0, 0) };
         _chkShowDestSpawners.CheckedChanged += (_, _) => ApplySpawnerOverlays();
+
+        _chkShowSourceAllSpawners = new CheckBox { AutoSize = true, Text = "All spawners", Margin = new Padding(10, 8, 0, 0) };
+        _chkShowSourceAllSpawners.CheckedChanged += (_, _) => ApplySpawnerOverlays();
+
+        _chkShowDestAllSpawners = new CheckBox { AutoSize = true, Text = "All spawners", Margin = new Padding(10, 8, 0, 0) };
+        _chkShowDestAllSpawners.CheckedChanged += (_, _) => ApplySpawnerOverlays();
 
         var btnClose = new Button { Text = "Close", Width = 84, DialogResult = DialogResult.OK };
 
@@ -142,21 +150,23 @@ public sealed class MapPreviewForm : Form
         };
         mapsLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50f));
         mapsLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50f));
-        mapsLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 34f));
+        mapsLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 48f));
         mapsLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
         mapsLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 24f));
 
-        var sourceHeaderHost = new FlowLayoutPanel { Dock = DockStyle.Fill, WrapContents = false, FlowDirection = FlowDirection.LeftToRight, Margin = new Padding(0) };
+        var sourceHeaderHost = new FlowLayoutPanel { Dock = DockStyle.Fill, WrapContents = true, FlowDirection = FlowDirection.LeftToRight, Margin = new Padding(0) };
         sourceHeaderHost.Controls.Add(_lblSourceHeader);
         sourceHeaderHost.Controls.Add(_btnFitSource);
         sourceHeaderHost.Controls.Add(_chkShowSourceRegions);
         sourceHeaderHost.Controls.Add(_chkShowSourceSpawners);
+        sourceHeaderHost.Controls.Add(_chkShowSourceAllSpawners);
 
-        var destinationHeaderHost = new FlowLayoutPanel { Dock = DockStyle.Fill, WrapContents = false, FlowDirection = FlowDirection.LeftToRight, Margin = new Padding(0) };
+        var destinationHeaderHost = new FlowLayoutPanel { Dock = DockStyle.Fill, WrapContents = true, FlowDirection = FlowDirection.LeftToRight, Margin = new Padding(0) };
         destinationHeaderHost.Controls.Add(_lblDestinationHeader);
         destinationHeaderHost.Controls.Add(_btnFitDestination);
         destinationHeaderHost.Controls.Add(_chkShowDestRegions);
         destinationHeaderHost.Controls.Add(_chkShowDestSpawners);
+        destinationHeaderHost.Controls.Add(_chkShowDestAllSpawners);
 
         mapsLayout.Controls.Add(sourceHeaderHost, 0, 0);
         mapsLayout.Controls.Add(destinationHeaderHost, 1, 0);
@@ -567,19 +577,42 @@ public sealed class MapPreviewForm : Form
 
     private void UpdateSpawnerCheckboxState()
     {
-        var sourceCount = _sourceSpawnsDocument?.GetCountForProfile(_state.SourceProfile) ?? 0;
-        var destinationCount = _destinationSpawnsDocument?.GetCountForProfile(_state.DestinationProfile) ?? 0;
+        var sourceSpawners = _sourceSpawnsDocument?.GetForProfile(_state.SourceProfile);
+        var destinationSpawners = _destinationSpawnsDocument?.GetForProfile(_state.DestinationProfile);
+        var sourceCount = sourceSpawners?.Count ?? 0;
+        var destinationCount = destinationSpawners?.Count ?? 0;
+        var sourceInRegion = CountSpawnersInRegion(sourceSpawners, _state.SourceRect);
+        var destinationInRegion = CountSpawnersInRegion(destinationSpawners, _state.GetDestinationRect());
+        var sourceHasRegion = _state.SourceRect != null;
+        var destinationHasRegion = _state.GetDestinationRect() != null;
 
-        var sourceEnabled = _sourceSpawnsDocument != null && sourceCount > 0;
-        var destinationEnabled = _destinationSpawnsDocument != null && destinationCount > 0;
+        var sourceEnabled = sourceSpawners != null && sourceCount > 0;
+        var destinationEnabled = destinationSpawners != null && destinationCount > 0;
 
-        _chkShowSourceSpawners.Enabled = sourceEnabled;
-        _chkShowDestSpawners.Enabled = destinationEnabled;
+        _chkShowSourceSpawners.Enabled = sourceEnabled && sourceHasRegion;
+        _chkShowDestSpawners.Enabled = destinationEnabled && destinationHasRegion;
+        _chkShowSourceAllSpawners.Enabled = sourceEnabled;
+        _chkShowDestAllSpawners.Enabled = destinationEnabled;
 
-        _chkShowSourceSpawners.Text = sourceEnabled ? $"Display spawners ({sourceCount})" : "Display spawners";
-        _chkShowDestSpawners.Text = destinationEnabled ? $"Display spawners ({destinationCount})" : "Display spawners";
+        _chkShowSourceSpawners.Text = sourceEnabled && sourceHasRegion
+            ? $"In copy area ({sourceInRegion})"
+            : "In copy area";
+        _chkShowDestSpawners.Text = destinationEnabled && destinationHasRegion
+            ? $"In copy area ({destinationInRegion})"
+            : "In copy area";
+        _chkShowSourceAllSpawners.Text = sourceEnabled
+            ? $"All spawners ({sourceCount})"
+            : "All spawners";
+        _chkShowDestAllSpawners.Text = destinationEnabled
+            ? $"All spawners ({destinationCount})"
+            : "All spawners";
 
         if (!sourceEnabled)
+        {
+            _chkShowSourceSpawners.Checked = false;
+            _chkShowSourceAllSpawners.Checked = false;
+        }
+        else if (!sourceHasRegion)
         {
             _chkShowSourceSpawners.Checked = false;
         }
@@ -587,13 +620,85 @@ public sealed class MapPreviewForm : Form
         if (!destinationEnabled)
         {
             _chkShowDestSpawners.Checked = false;
+            _chkShowDestAllSpawners.Checked = false;
+        }
+        else if (!destinationHasRegion)
+        {
+            _chkShowDestSpawners.Checked = false;
         }
     }
 
     private void ApplySpawnerOverlays()
     {
-        _sourcePanel.SetSpawners(_sourceSpawnsDocument?.GetForProfile(_state.SourceProfile), _chkShowSourceSpawners.Checked);
-        _destinationPanel.SetSpawners(_destinationSpawnsDocument?.GetForProfile(_state.DestinationProfile), _chkShowDestSpawners.Checked);
+        var sourceAll = _sourceSpawnsDocument?.GetForProfile(_state.SourceProfile);
+        var destinationAll = _destinationSpawnsDocument?.GetForProfile(_state.DestinationProfile);
+        var sourceInRegion = FilterSpawnersByCentre(sourceAll, _state.SourceRect);
+        var destinationInRegion = FilterSpawnersByCentre(destinationAll, _state.GetDestinationRect());
+
+        IReadOnlyList<SpawnerOverlay>? sourceToShow = null;
+        if (_chkShowSourceAllSpawners.Checked)
+        {
+            sourceToShow = sourceAll;
+        }
+        else if (_chkShowSourceSpawners.Checked)
+        {
+            sourceToShow = sourceInRegion;
+        }
+
+        IReadOnlyList<SpawnerOverlay>? destinationToShow = null;
+        if (_chkShowDestAllSpawners.Checked)
+        {
+            destinationToShow = destinationAll;
+        }
+        else if (_chkShowDestSpawners.Checked)
+        {
+            destinationToShow = destinationInRegion;
+        }
+
+        _sourcePanel.SetSpawners(
+            sourceToShow,
+            _chkShowSourceSpawners.Checked || _chkShowSourceAllSpawners.Checked);
+        _destinationPanel.SetSpawners(
+            destinationToShow,
+            _chkShowDestSpawners.Checked || _chkShowDestAllSpawners.Checked);
+    }
+
+    private static int CountSpawnersInRegion(IReadOnlyList<SpawnerOverlay>? spawners, CopyRectangle? region)
+    {
+        if (spawners == null || region == null)
+        {
+            return 0;
+        }
+
+        var count = 0;
+        foreach (var spawner in spawners)
+        {
+            if (region.ContainsPoint(spawner.CentreX, spawner.CentreY))
+            {
+                count++;
+            }
+        }
+
+        return count;
+    }
+
+    private static IReadOnlyList<SpawnerOverlay>? FilterSpawnersByCentre(
+        IReadOnlyList<SpawnerOverlay>? spawners,
+        CopyRectangle? region)
+    {
+        if (spawners == null)
+        {
+            return null;
+        }
+
+        if (region == null)
+        {
+            return spawners;
+        }
+
+        return spawners
+            .Where(spawner => region.ContainsPoint(spawner.CentreX, spawner.CentreY))
+            .ToList();
     }
 
     private sealed record RenderResult(

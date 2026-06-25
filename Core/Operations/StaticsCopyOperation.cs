@@ -55,13 +55,13 @@ public sealed class StaticsCopyOperation
                 {
                     for (var i = 0; i < records.Count; i++)
                     {
-                        var z = records[i].Z;
-                        var adjusted = request.AltitudeMode == AltitudeMode.FixedRandom
-                            ? random.Next(Math.Min(request.Z1, request.Z2), Math.Max(request.Z1, request.Z2) + 1)
-                            : z + random.Next(Math.Min(request.Z1, request.Z2), Math.Max(request.Z1, request.Z2) + 1);
-
-                        adjusted = Math.Clamp(adjusted, sbyte.MinValue, sbyte.MaxValue);
-                        records[i] = records[i].WithZ((sbyte)adjusted);
+                        var adjusted = AltitudeAdjustment.Apply(
+                            request.AltitudeMode,
+                            request.Z1,
+                            request.Z2,
+                            records[i].Z,
+                            random);
+                        records[i] = records[i].WithZ(adjusted);
                     }
                 }
 

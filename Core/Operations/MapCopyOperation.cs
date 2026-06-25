@@ -7,7 +7,8 @@ public enum AltitudeMode
 {
     Unchanged = 0,
     FixedRandom = 1,
-    AddRandomOffset = 2
+    AddRandomOffset = 2,
+    FixedOffset = 3
 }
 
 public sealed class MapCopyRequest
@@ -80,7 +81,7 @@ public sealed class MapCopyOperation
                     continue;
                 }
 
-                var finalZ = ApplyAltitudeMode(request.AltitudeMode, request.Z1, request.Z2, sourceZ, random);
+                var finalZ = AltitudeAdjustment.Apply(request.AltitudeMode, request.Z1, request.Z2, sourceZ, random);
                 destination.WriteCell(dx, dy, tileId, finalZ);
 
                 done++;
@@ -93,33 +94,6 @@ public sealed class MapCopyOperation
         }
 
         progress?.Invoke(100, "Map copy complete.");
-    }
-
-    private static sbyte ApplyAltitudeMode(AltitudeMode mode, int z1, int z2, sbyte sourceZ, Random random)
-    {
-        if (z1 > z2)
-        {
-            (z1, z2) = (z2, z1);
-        }
-
-        var value = mode switch
-        {
-            AltitudeMode.Unchanged => sourceZ,
-            AltitudeMode.FixedRandom => random.Next(z1, z2 + 1),
-            AltitudeMode.AddRandomOffset => sourceZ + random.Next(z1, z2 + 1),
-            _ => sourceZ
-        };
-
-        if (value > sbyte.MaxValue)
-        {
-            value = sbyte.MaxValue;
-        }
-        else if (value < sbyte.MinValue)
-        {
-            value = sbyte.MinValue;
-        }
-
-        return (sbyte)value;
     }
 }
 

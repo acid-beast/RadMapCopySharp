@@ -31,7 +31,13 @@ public sealed class SettingsStore
             SourceStaidxPath = Get(dict, "Paths", "SourceStaidxPath"),
             DestinationStaidxPath = Get(dict, "Paths", "DestinationStaidxPath"),
             SourceStaticsPath = Get(dict, "Paths", "SourceStaticsPath"),
-            DestinationStaticsPath = Get(dict, "Paths", "DestinationStaticsPath")
+            DestinationStaticsPath = Get(dict, "Paths", "DestinationStaticsPath"),
+            SourceX1 = Get(dict, "Coordinates", "SourceX1"),
+            SourceY1 = Get(dict, "Coordinates", "SourceY1"),
+            SourceX2 = Get(dict, "Coordinates", "SourceX2"),
+            SourceY2 = Get(dict, "Coordinates", "SourceY2"),
+            DestinationX = Get(dict, "Coordinates", "DestinationX"),
+            DestinationY = Get(dict, "Coordinates", "DestinationY")
         };
     }
 
@@ -51,6 +57,14 @@ public sealed class SettingsStore
         sb.AppendLine($"DestinationStaidxPath={settings.DestinationStaidxPath}");
         sb.AppendLine($"SourceStaticsPath={settings.SourceStaticsPath}");
         sb.AppendLine($"DestinationStaticsPath={settings.DestinationStaticsPath}");
+        sb.AppendLine();
+        sb.AppendLine("[Coordinates]");
+        sb.AppendLine($"SourceX1={settings.SourceX1}");
+        sb.AppendLine($"SourceY1={settings.SourceY1}");
+        sb.AppendLine($"SourceX2={settings.SourceX2}");
+        sb.AppendLine($"SourceY2={settings.SourceY2}");
+        sb.AppendLine($"DestinationX={settings.DestinationX}");
+        sb.AppendLine($"DestinationY={settings.DestinationY}");
 
         if (existingOverrides.Count > 0)
         {
@@ -245,6 +259,12 @@ public sealed class AppSettings
     public string DestinationStaidxPath { get; set; } = string.Empty;
     public string SourceStaticsPath { get; set; } = string.Empty;
     public string DestinationStaticsPath { get; set; } = string.Empty;
+    public string SourceX1 { get; set; } = string.Empty;
+    public string SourceY1 { get; set; } = string.Empty;
+    public string SourceX2 { get; set; } = string.Empty;
+    public string SourceY2 { get; set; } = string.Empty;
+    public string DestinationX { get; set; } = string.Empty;
+    public string DestinationY { get; set; } = string.Empty;
 }
 
 public sealed class SkipTilePreset

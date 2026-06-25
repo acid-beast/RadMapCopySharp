@@ -26,42 +26,57 @@ This matrix covers Phase 6 verification for map/statics copy flows across MUL an
 - Altitude mode: Add Random, Z1/Z2 set
 - Verify copied Z = source Z + random(Z1..Z2), clamped to sbyte range
 
-4. Felucca MUL -> Felucca MUL, skip preset
+4. Felucca MUL -> Felucca MUL, map only, add fixed offset
+- Altitude mode: Add Fixed, Offset +28 (leave Z2 at 0/disabled — this is the default UI state)
+- Verify copied land Z = source Z + 28 at sample coordinates (e.g. source Z -30 becomes -2)
+- With statics enabled, verify static item Z values match source Z + 28
+- With spawners enabled, verify CentreZ values match source CentreZ + 28
+- Repeat with negative offset (e.g. -10) and confirm Z2=0 still applies correctly
+
+5. Felucca MUL -> Felucca MUL, skip preset
 - Choose preset with known tile IDs
 - Verify matching map tile IDs are not overwritten in destination
 
-5. Felucca MUL -> Felucca MUL, statics only
+6. Felucca MUL -> Felucca MUL, statics only
 - Copy map unchecked, statics checked
 - Block-aligned source and destination coords
 - Verify destination block index entries are rewritten and statics appear in-game
 
-6. Felucca MUL -> Felucca MUL, map + statics
+7. Felucca MUL -> Felucca MUL, map + statics
 - Both toggles checked
 - Verify Add Random mode radio is hidden
+- Verify Add Fixed mode remains available
 - Verify both land and statics copy complete successfully
 
-7. Misaligned statics coordinates
+8. Misaligned statics coordinates
 - Statics enabled with non-block-aligned coordinates
 - Verify operation rejects with alignment error
 
-8. Create Empty Map (all presets)
+9. Create Empty Map (all presets)
 - Run Create Empty Map for each preset
 - Verify output file size matches profile dimensions
 - Optional statics creation produces initialized staidx and empty statics
 
-9. Extend to ML
+10. Extend to ML
 - Source: non-ML profile map
 - Verify output is 7168x4096 and source area is copied in top-left
 - Verify ML source is rejected
 
-10. MUL -> UOP land patch
+11. MUL -> UOP land patch
 - Destination map path is .uop
 - Confirm warning prompt appears and operation proceeds on user confirmation
 - Verify cell updates are present in destination UOP copy
 
-11. MUL -> UOP with statics enabled
+12. MUL -> UOP with statics enabled
 - Verify warning includes note that statics remain MUL files
 - Verify map writes to UOP and statics writes to destination MUL files
+
+13. Spawner copy by centre in source rect
+- Source spawner xml with entries where CentreX/CentreY is inside the copy rect but anchor X/Y is outside
+- Verify all centre-in-rect spawners are copied (not only those with anchor inside)
+- Example: Ilshenar rect 1752,944-1872,1008 should copy 4 spawners, not 2
+- Preview with copy overlay: source pane "In copy area" shows only spawners whose centre is in the source rect
+- Preview "All spawners" shows the full facet overlay; both checkboxes can be toggled independently (both checked shows all)
 
 ## Delphi Parity Notes
 

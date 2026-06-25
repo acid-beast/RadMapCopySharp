@@ -82,6 +82,7 @@ namespace RadMapCopySharp
             this.grpCopyMode = new System.Windows.Forms.GroupBox();
             this.flowCopyMode = new System.Windows.Forms.FlowLayoutPanel();
             this.rbKeepZ = new System.Windows.Forms.RadioButton();
+            this.rbAddFixedZ = new System.Windows.Forms.RadioButton();
             this.rbRandomZ = new System.Windows.Forms.RadioButton();
             this.rbAddRandomZ = new System.Windows.Forms.RadioButton();
             this.lblZ1 = new System.Windows.Forms.Label();
@@ -828,6 +829,7 @@ namespace RadMapCopySharp
             // flowCopyMode
             //
             this.flowCopyMode.Controls.Add(this.rbKeepZ);
+            this.flowCopyMode.Controls.Add(this.rbAddFixedZ);
             this.flowCopyMode.Controls.Add(this.rbRandomZ);
             this.flowCopyMode.Controls.Add(this.rbAddRandomZ);
             this.flowCopyMode.Controls.Add(this.lblZ1);
@@ -840,7 +842,7 @@ namespace RadMapCopySharp
             this.flowCopyMode.Name = "flowCopyMode";
             this.flowCopyMode.Size = new System.Drawing.Size(566, 39);
             this.flowCopyMode.TabIndex = 0;
-            this.flowCopyMode.WrapContents = false;
+            this.flowCopyMode.WrapContents = true;
             //
             // rbKeepZ
             //
@@ -854,24 +856,34 @@ namespace RadMapCopySharp
             this.rbKeepZ.Text = "Keep Z";
             this.rbKeepZ.UseVisualStyleBackColor = true;
             //
+            // rbAddFixedZ
+            //
+            this.rbAddFixedZ.AutoSize = true;
+            this.rbAddFixedZ.Location = new System.Drawing.Point(71, 3);
+            this.rbAddFixedZ.Name = "rbAddFixedZ";
+            this.rbAddFixedZ.Size = new System.Drawing.Size(72, 19);
+            this.rbAddFixedZ.TabIndex = 1;
+            this.rbAddFixedZ.Text = "Add Z Offset";
+            this.rbAddFixedZ.UseVisualStyleBackColor = true;
+            //
             // rbRandomZ
             //
             this.rbRandomZ.AutoSize = true;
-            this.rbRandomZ.Location = new System.Drawing.Point(71, 3);
+            this.rbRandomZ.Location = new System.Drawing.Point(149, 3);
             this.rbRandomZ.Name = "rbRandomZ";
             this.rbRandomZ.Size = new System.Drawing.Size(80, 19);
-            this.rbRandomZ.TabIndex = 1;
+            this.rbRandomZ.TabIndex = 2;
             this.rbRandomZ.Text = "Random Z";
             this.rbRandomZ.UseVisualStyleBackColor = true;
             //
             // rbAddRandomZ
             //
             this.rbAddRandomZ.AutoSize = true;
-            this.rbAddRandomZ.Location = new System.Drawing.Point(157, 3);
+            this.rbAddRandomZ.Location = new System.Drawing.Point(235, 3);
             this.rbAddRandomZ.Name = "rbAddRandomZ";
             this.rbAddRandomZ.Size = new System.Drawing.Size(95, 19);
-            this.rbAddRandomZ.TabIndex = 2;
-            this.rbAddRandomZ.Text = "Add Random";
+            this.rbAddRandomZ.TabIndex = 3;
+            this.rbAddRandomZ.Text = "Add Random Z";
             this.rbAddRandomZ.UseVisualStyleBackColor = true;
             //
             // lblZ1
@@ -1192,6 +1204,7 @@ namespace RadMapCopySharp
         private System.Windows.Forms.GroupBox grpCopyMode;
         private System.Windows.Forms.FlowLayoutPanel flowCopyMode;
         private System.Windows.Forms.RadioButton rbKeepZ;
+        private System.Windows.Forms.RadioButton rbAddFixedZ;
         private System.Windows.Forms.RadioButton rbRandomZ;
         private System.Windows.Forms.RadioButton rbAddRandomZ;
         private System.Windows.Forms.Label lblZ1;

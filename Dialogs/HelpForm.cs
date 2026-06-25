@@ -21,7 +21,8 @@ public sealed class HelpForm : Form
                 "1) Map Copy\r\n" +
                 "- Select source and destination map files (.mul or .uop).\r\n" +
                 "- Set source rectangle and destination anchor.\r\n" +
-                "- Choose altitude mode (Keep Z, Random Z, Add Random).\r\n" +
+                "- Choose altitude mode (Keep Z, Add Fixed, Random Z, Add Random).\r\n" +
+                "- Add Fixed adds the offset value to each source Z (land, statics, spawner CentreZ).\r\n" +
                 "- Optional skip preset applies to map tile IDs only.\r\n\r\n" +
                 "2) Statics Copy\r\n" +
                 "- Enable Copy statics and provide source/destination staidx/statics files.\r\n" +

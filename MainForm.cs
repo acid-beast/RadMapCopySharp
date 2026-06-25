@@ -82,6 +82,12 @@ public partial class MainForm : Form
             ValidateAllInputs();
         };
 
+        rbAddFixedZ.CheckedChanged += (_, _) =>
+        {
+            UpdateAltitudeInputState();
+            ValidateAllInputs();
+        };
+
         chkCopyMap.CheckedChanged += (_, _) =>
         {
             UpdateCopyModeVisibility();
@@ -125,6 +131,12 @@ public partial class MainForm : Form
         txtDstStatics.Text = settings.DestinationStaticsPath;
         txtSrcSpawns.Text = settings.SourceSpawnsXmlPath;
         txtDstSpawns.Text = settings.DestinationSpawnsXmlPath;
+        txtSX1.Text = settings.SourceX1;
+        txtSY1.Text = settings.SourceY1;
+        txtSX2.Text = settings.SourceX2;
+        txtSY2.Text = settings.SourceY2;
+        txtDX.Text = settings.DestinationX;
+        txtDY.Text = settings.DestinationY;
         _radarColPath = ResolveRadarColPath(settings.RadarColPath, settings.SourceMapPath, settings.DestinationMapPath);
         _regionsXmlPath = ResolveRegionsXmlPath(settings.RegionsXmlPath, settings.SourceMapPath, settings.DestinationMapPath, _radarColPath);
     }
@@ -170,7 +182,13 @@ public partial class MainForm : Form
             SourceStaidxPath = txtSrcStaidx.Text,
             SourceStaticsPath = txtSrcStatics.Text,
             DestinationStaidxPath = txtDstStaidx.Text,
-            DestinationStaticsPath = txtDstStatics.Text
+            DestinationStaticsPath = txtDstStatics.Text,
+            SourceX1 = txtSX1.Text,
+            SourceY1 = txtSY1.Text,
+            SourceX2 = txtSX2.Text,
+            SourceY2 = txtSY2.Text,
+            DestinationX = txtDX.Text,
+            DestinationY = txtDY.Text
         });
     }
 
@@ -498,9 +516,11 @@ public partial class MainForm : Form
             ? AltitudeMode.FixedRandom
             : rbAddRandomZ.Checked
                 ? AltitudeMode.AddRandomOffset
-                : AltitudeMode.Unchanged;
+                : rbAddFixedZ.Checked
+                    ? AltitudeMode.FixedOffset
+                    : AltitudeMode.Unchanged;
 
-        if (mode != AltitudeMode.Unchanged && numZ1.Value > numZ2.Value)
+        if (mode is AltitudeMode.FixedRandom or AltitudeMode.AddRandomOffset && numZ1.Value > numZ2.Value)
         {
             error = "For random altitude modes, Z1 must be less than or equal to Z2.";
             return false;
@@ -559,7 +579,7 @@ public partial class MainForm : Form
                 }
             }
 
-            SetStatus("Starting copy...", isError: false);
+            SetStatus(GetAltitudeCopyStatusMessage(request), isError: false);
             progressBar.Value = 0;
             SetActionsBusy(true);
 
@@ -615,7 +635,10 @@ public partial class MainForm : Form
                     SourceX2 = request.SourceX2,
                     SourceY2 = request.SourceY2,
                     DestinationX = request.DestinationX,
-                    DestinationY = request.DestinationY
+                    DestinationY = request.DestinationY,
+                    AltitudeMode = request.AltitudeMode,
+                    Z1 = request.Z1,
+                    Z2 = request.Z2
                 };
 
                 spawnsResult = await Task.Run(() => _spawnsCopyOperation.Execute(spawnsRequest, OnProgress));
@@ -649,11 +672,41 @@ public partial class MainForm : Form
         });
     }
 
+    private static string GetAltitudeCopyStatusMessage(MapCopyRequest request)
+    {
+        return request.AltitudeMode switch
+        {
+            AltitudeMode.FixedOffset => $"Copying with Add Fixed offset {(request.Z1 >= 0 ? "+" : "")}{request.Z1}...",
+            AltitudeMode.FixedRandom => $"Copying with Random Z ({request.Z1}..{request.Z2})...",
+            AltitudeMode.AddRandomOffset => $"Copying with Add Random ({request.Z1}..{request.Z2})...",
+            _ => "Copying with Keep Z..."
+        };
+    }
+
     private void UpdateAltitudeInputState()
     {
-        var enabled = !rbKeepZ.Checked;
-        numZ1.Enabled = enabled;
-        numZ2.Enabled = enabled;
+        if (rbKeepZ.Checked)
+        {
+            numZ1.Enabled = false;
+            numZ2.Enabled = false;
+            lblZ1.Text = "Z1";
+            lblZ2.Visible = true;
+            return;
+        }
+
+        if (rbAddFixedZ.Checked)
+        {
+            numZ1.Enabled = true;
+            numZ2.Enabled = false;
+            lblZ1.Text = "Offset";
+            lblZ2.Visible = false;
+            return;
+        }
+
+        numZ1.Enabled = true;
+        numZ2.Enabled = true;
+        lblZ1.Text = "Z1";
+        lblZ2.Visible = true;
     }
 
     private void UpdateCopyModeVisibility()
