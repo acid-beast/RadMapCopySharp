@@ -151,6 +151,12 @@ public sealed class MapPreviewPanel : Panel
                 spawner = candidate;
                 return true;
             }
+
+            if (candidate.Range > 0 && IsWithinSpawnerRange(tile.X, tile.Y, candidate))
+            {
+                spawner = candidate;
+                return true;
+            }
         }
 
         return false;
@@ -392,5 +398,13 @@ public sealed class MapPreviewPanel : Panel
 
         _hoveredSpawner = null;
         SpawnerHoverChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    private static bool IsWithinSpawnerRange(int tileX, int tileY, SpawnerOverlay spawner)
+    {
+        var dx = tileX - spawner.CentreX;
+        var dy = tileY - spawner.CentreY;
+        var rangeSquared = (long)spawner.Range * spawner.Range;
+        return (long)dx * dx + (long)dy * dy <= rangeSquared;
     }
 }

@@ -425,12 +425,38 @@ public sealed class MapPreviewForm : Form
     private static string BuildSpawnerTooltip(SpawnerOverlay spawner)
     {
         var bounds = spawner.Bounds;
-        var creatures = spawner.Creatures.Count > 0 ? string.Join(", ", spawner.Creatures) : "(none)";
+        var creatureText = FormatCreaturesForTooltip(spawner.Creatures);
+        var spawnsLine = creatureText.Contains('\n', StringComparison.Ordinal)
+            ? $"Spawns:\n{creatureText}"
+            : $"Spawns: {creatureText}";
         var delayUnit = spawner.DelayInSec ? "s" : "m";
         return $"{spawner.Name}\n" +
-               $"Spawns: {creatures}\n" +
+               $"{spawnsLine}\n" +
                $"Max {spawner.MaxCount} | Range {spawner.Range} | Delay {spawner.MinDelay}-{spawner.MaxDelay}{delayUnit}\n" +
                $"Centre {spawner.CentreX},{spawner.CentreY} | Box {bounds.X1},{bounds.Y1} - {bounds.X2},{bounds.Y2}";
+    }
+
+    private static string FormatCreaturesForTooltip(IReadOnlyList<string> creatures)
+    {
+        if (creatures.Count == 0)
+        {
+            return "(none)";
+        }
+
+        var joined = string.Join(", ", creatures);
+        if (joined.Length <= 120)
+        {
+            return joined;
+        }
+
+        var lines = new List<string>();
+        for (var i = 0; i < creatures.Count; i += 5)
+        {
+            var chunk = creatures.Skip(i).Take(5);
+            lines.Add(string.Join(", ", chunk));
+        }
+
+        return string.Join("\n", lines);
     }
 
     protected override void Dispose(bool disposing)

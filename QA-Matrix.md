@@ -78,6 +78,16 @@ This matrix covers Phase 6 verification for map/statics copy flows across MUL an
 - Preview with copy overlay: source pane "In copy area" shows only spawners whose centre is in the source rect
 - Preview "All spawners" shows the full facet overlay; both checkboxes can be toggled independently (both checked shows all)
 
+14. Spawner tooltip lists all Objects2 creatures
+- Open preview with Felucca spawns; hover a spawner with chained Objects2 (e.g. WildLife#22)
+- Tooltip Spawns line lists all creature types (Boar, Cougar, Goat, etc.), not only the first entry
+
+15. Point spawners (Width/Height zero) in preview
+- Load Felucca `Spawns/Felucca/Towns/vendors.xml` with **All spawners** checked
+- Expect ~288 spawner markers on Felucca (not 12)
+- Hover a point spawner (`Width=0`, `Height=0`) — tooltip shows vendor name, range, and creature list
+- Range circle is clickable for tooltip (not only the 1x1 centre tile)
+
 ## Delphi Parity Notes
 
 - Replicated behavior

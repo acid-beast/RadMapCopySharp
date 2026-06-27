@@ -78,6 +78,10 @@ public static class SpawnsXmlParser
         var name = "(unnamed spawner)";
         int x = 0, y = 0, width = 0, height = 0;
         int centreX = 0, centreY = 0;
+        var hasCentreX = false;
+        var hasCentreY = false;
+        var hasX = false;
+        var hasY = false;
         int range = 0, maxCount = 0, minDelay = 0, maxDelay = 0;
         var delayInSec = false;
         var creatures = new List<string>();
@@ -103,9 +107,11 @@ public static class SpawnsXmlParser
                         break;
                     case "X":
                         x = ParseInt(value);
+                        hasX = true;
                         break;
                     case "Y":
                         y = ParseInt(value);
+                        hasY = true;
                         break;
                     case "Width":
                         width = ParseInt(value);
@@ -115,9 +121,11 @@ public static class SpawnsXmlParser
                         break;
                     case "CentreX":
                         centreX = ParseInt(value);
+                        hasCentreX = true;
                         break;
                     case "CentreY":
                         centreY = ParseInt(value);
+                        hasCentreY = true;
                         break;
                     case "Range":
                         range = ParseInt(value);
@@ -135,7 +143,7 @@ public static class SpawnsXmlParser
                         delayInSec = ParseBool(value);
                         break;
                     case "Objects2":
-                        AddCreature(creatures, value);
+                        AddCreaturesFromObjects2(creatures, value);
                         break;
                 }
 
@@ -151,7 +159,34 @@ public static class SpawnsXmlParser
             reader.Read();
         }
 
-        if (string.IsNullOrWhiteSpace(map) || width <= 0 || height <= 0)
+        if (string.IsNullOrWhiteSpace(map))
+        {
+            return;
+        }
+
+        CopyRectangle bounds;
+        int overlayCentreX;
+        int overlayCentreY;
+
+        if (width > 0 && height > 0)
+        {
+            bounds = new CopyRectangle(x, y, x + width - 1, y + height - 1);
+            overlayCentreX = hasCentreX || hasCentreY ? centreX : x;
+            overlayCentreY = hasCentreX || hasCentreY ? centreY : y;
+        }
+        else if (hasCentreX || hasCentreY)
+        {
+            overlayCentreX = centreX;
+            overlayCentreY = centreY;
+            bounds = new CopyRectangle(overlayCentreX, overlayCentreY, overlayCentreX, overlayCentreY);
+        }
+        else if (hasX || hasY)
+        {
+            overlayCentreX = x;
+            overlayCentreY = y;
+            bounds = new CopyRectangle(overlayCentreX, overlayCentreY, overlayCentreX, overlayCentreY);
+        }
+        else
         {
             return;
         }
@@ -166,9 +201,9 @@ public static class SpawnsXmlParser
         {
             Map = map,
             Name = name,
-            Bounds = new CopyRectangle(x, y, x + width - 1, y + height - 1),
-            CentreX = centreX,
-            CentreY = centreY,
+            Bounds = bounds,
+            CentreX = overlayCentreX,
+            CentreY = overlayCentreY,
             Range = range,
             MaxCount = maxCount,
             MinDelay = minDelay,
@@ -189,20 +224,47 @@ public static class SpawnsXmlParser
         return reader.ReadElementContentAsString();
     }
 
-    private static void AddCreature(List<string> creatures, string objects2)
+    private static void AddCreaturesFromObjects2(List<string> creatures, string objects2)
     {
         if (string.IsNullOrWhiteSpace(objects2))
         {
             return;
         }
 
-        var token = objects2.Split('/', ':')[0].Trim();
-        if (token.Length == 0 || creatures.Contains(token, StringComparer.OrdinalIgnoreCase))
+        foreach (var segment in SplitObjects2Entries(objects2))
         {
-            return;
-        }
+            var name = ExtractCreatureName(segment);
+            if (name.Length == 0 || creatures.Contains(name, StringComparer.OrdinalIgnoreCase))
+            {
+                continue;
+            }
 
-        creatures.Add(token);
+            creatures.Add(name);
+        }
+    }
+
+    private static IEnumerable<string> SplitObjects2Entries(string objects2)
+    {
+        const string delimiter = ":OBJ=";
+        var start = 0;
+        while (start <= objects2.Length)
+        {
+            var index = objects2.IndexOf(delimiter, start, StringComparison.OrdinalIgnoreCase);
+            if (index < 0)
+            {
+                yield return objects2[start..];
+                yield break;
+            }
+
+            yield return objects2[start..index];
+            start = index + delimiter.Length;
+        }
+    }
+
+    private static string ExtractCreatureName(string segment)
+    {
+        var colon = segment.IndexOf(':');
+        return (colon >= 0 ? segment[..colon] : segment).Trim();
     }
 
     private static int ParseInt(string value)
